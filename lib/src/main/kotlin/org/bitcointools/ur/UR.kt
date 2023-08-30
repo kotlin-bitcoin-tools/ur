@@ -5,9 +5,12 @@
 
 package org.bitcointools.ur
 
-public class UR(public val registryType: RegistryType, public val cbor: ByteArray) {
+public class UR(public val registryType: RegistryType, public val cborBytes: ByteArray) {
+    /**
+     * Returns the UR as a string, always a single-part UR.
+     */
     public override fun toString(): String {
-        return UREncoder.encode(this)
+        return UREncoder.encodeSinglePartUR(this)
     }
 
     public companion object {

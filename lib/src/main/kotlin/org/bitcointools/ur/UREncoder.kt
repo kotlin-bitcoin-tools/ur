@@ -5,10 +5,25 @@
 
 package org.bitcointools.ur
 
-public class UREncoder {
+import org.bitcointools.ur.fountain.FountainEncoder
+
+public class UREncoder(
+    private val ur: UR,
+    maximumFragmentLength: Int,
+    minimumFragmentLength: Int = 10,
+    firstSequenceNumber: Long = 0,
+) {
+    private val fountainEncoder: FountainEncoder = FountainEncoder(
+        ur.cborBytes,
+        maximumFragmentLength,
+        minimumFragmentLength,
+        firstSequenceNumber
+    )
+
+
     public companion object {
-        public fun encode(ur: UR): String {
-            val encoded: String = Bytewords.encodeMinimal(ur.cbor)
+        public fun encodeSinglePartUR(ur: UR): String {
+            val encoded: String = Bytewords.encodeMinimal(ur.cborBytes)
             val urBody = URBody.Single(encoded)
             return encodeURI(ur.registryType, urBody)
         }
