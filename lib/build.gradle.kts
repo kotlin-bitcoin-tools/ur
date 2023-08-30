@@ -1,6 +1,7 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
     id("java-library")
+    id("java")
 }
 
 repositories {
@@ -26,9 +27,17 @@ kotlin {
     explicitApi()
 }
 
-// Apply a specific Java toolchain to ease working on different environments.
 java {
+    // sourceCompatibility = JavaVersion.VERSION_17
+    // targetCompatibility = JavaVersion.VERSION_17
+
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDirs("src/main/kotlin")
     }
 }
