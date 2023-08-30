@@ -1,5 +1,8 @@
 package org.bitcointools.ur
 
+import org.bitcointools.ur.registry.CryptoPSBT
+import org.bitcointools.ur.registry.Psbt
+import org.bitcointools.ur.registry.UrBytes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -10,10 +13,11 @@ class CryptoPsbtTest {
         val psbtHex = "70736274ff01009a020000000258e87a21b56daf0c23be8e7070456c336f7cbaa5c8757924f545887bb2abdd750000000000ffffffff838d0427d0ec650a68aa46bb0b098aea4422c071b2ca78352a077959d07cea1d0100000000ffffffff0270aaf00800000000160014d85c2b71d0060b09c9886aeb815e50991dda124d00e1f5050000000016001400aea9a2e5f0f876a588df5546e8742d1d87008f000000000000000000"
         val psbt: Psbt = Psbt(psbtHex.hexToByteArray())
         val cryptoPSBT: CryptoPSBT = CryptoPSBT(psbt)
-        val ur: String = "ur:crypto-psbt/hdosjojkidjyzmadaenyaoaeaeaeaohdvsknclrejnpebncnrnmnjojofejzeojlkerdonspkpkkdkykfelokgprpyutkpaeaeaeaeaezmzmzmzmlslgaaditiwpihbkispkfgrkbdaslewdfycprtjsprsgksecdratkkhktikewdcaadaeaeaeaezmzmzmzmaojopkwtayaeaeaeaecmaebbtphhdnjstiambdassoloimwmlyhygdnlcatnbggtaevyykahaeaeaeaecmaebbaeplptoevwwtyakoonlourgofgvsjydpcaltaemyaeaeaeaeaeaeaeaeaebkgdcarh"
+        val urString: String = "ur:crypto-psbt/hdosjojkidjyzmadaenyaoaeaeaeaohdvsknclrejnpebncnrnmnjojofejzeojlkerdonspkpkkdkykfelokgprpyutkpaeaeaeaeaezmzmzmzmlslgaaditiwpihbkispkfgrkbdaslewdfycprtjsprsgksecdratkkhktikewdcaadaeaeaeaezmzmzmzmaojopkwtayaeaeaeaecmaebbtphhdnjstiambdassoloimwmlyhygdnlcatnbggtaevyykahaeaeaeaecmaebbaeplptoevwwtyakoonlourgofgvsjydpcaltaemyaeaeaeaeaeaeaeaeaebkgdcarh"
 
+        // Given a PSBT, the String format of the UR is correct
         assertEquals<String>(
-            expected = ur,
+            expected = urString,
             actual = cryptoPSBT.toUR().toString()
         )
 
@@ -22,6 +26,21 @@ class CryptoPsbtTest {
         assertEquals<String>(
             expected = cborHex,
             actual = cryptoPSBT.toUR().cbor.toHexString(HexFormat.UpperCase)
+        )
+    }
+
+    // See tests:
+    //     https://github.com/BlockchainCommons/URKit/blob/f1fd22eac3d75ab1eecbb9955b6bdc8d9a65ba5a/Tests/URKitTests/URTests.swift#L12-L19
+    //     https://github.com/sparrowwallet/hummingbird/blob/1a7d56a3a915b90cf8f6c2bb7d9b4fa28d021b24/src/test/java/com/sparrowwallet/hummingbird/URTest.java#L18-L24
+    @Test
+    fun `Single part bytes type UR`() {
+        val urString: String = "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
+        val message: ByteArray = makeMessage(50, "Wolf")
+        val bytesUR = UrBytes(message)
+
+        assertEquals(
+            expected = urString,
+            actual = bytesUR.toUR().toString()
         )
     }
 }
