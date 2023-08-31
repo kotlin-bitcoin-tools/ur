@@ -1,8 +1,11 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
     id("java-library")
-    id("java")
+    id("maven-publish")
+    // id("java")
 }
+
+val libraryVersion: String by project
 
 repositories {
     mavenCentral()
@@ -39,5 +42,17 @@ java {
 sourceSets {
     main {
         java.srcDirs("src/main/kotlin")
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "org.bitcointools"
+            artifactId = "ur"
+            version = libraryVersion
+
+            from(components["java"])
+        }
     }
 }
