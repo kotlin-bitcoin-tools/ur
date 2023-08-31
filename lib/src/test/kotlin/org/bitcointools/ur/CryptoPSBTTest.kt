@@ -3,6 +3,7 @@ package org.bitcointools.ur
 import org.bitcointools.ur.registry.CryptoPSBT
 import org.bitcointools.ur.registry.Psbt
 import org.bitcointools.ur.registry.UrBytes
+import org.bitcointools.ur.utilities.RandomXoshiro256StarStar
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

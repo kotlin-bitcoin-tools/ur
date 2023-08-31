@@ -1,4 +1,4 @@
-package org.bitcointools.ur;
+package org.bitcointools.ur.utilities;
 
 /*
  * To the extent possible under law, the author has dedicated all copyright

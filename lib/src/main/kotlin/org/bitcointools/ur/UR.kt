@@ -5,6 +5,8 @@
 
 package org.bitcointools.ur
 
+import org.bitcointools.ur.registry.RegistryType
+
 public class UR(public val registryType: RegistryType, public val cborBytes: ByteArray) {
     /**
      * Returns the UR as a string, always a single-part UR.

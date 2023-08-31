@@ -7,8 +7,6 @@ package org.bitcointools.ur.registry
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory
-import org.bitcointools.ur.RegistryItem
-import org.bitcointools.ur.RegistryType
 import org.bitcointools.ur.UR
 
 public class UrBytes(

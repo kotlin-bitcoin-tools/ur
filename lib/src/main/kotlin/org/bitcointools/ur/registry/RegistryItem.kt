@@ -3,9 +3,11 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE.txt file.
  */
 
-package org.bitcointools.ur
+package org.bitcointools.ur.registry
 
-public enum class RegistryType(public val type: String) {
-    BYTES("bytes"),
-    CRYPTO_PSBT("crypto-psbt"),
+import org.bitcointools.ur.UR
+
+public interface RegistryItem {
+    public val registryType: RegistryType
+    public fun toUR(): UR
 }

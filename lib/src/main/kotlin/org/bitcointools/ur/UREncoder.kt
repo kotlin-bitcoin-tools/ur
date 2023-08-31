@@ -6,6 +6,7 @@
 package org.bitcointools.ur
 
 import org.bitcointools.ur.fountain.FountainEncoder
+import org.bitcointools.ur.registry.RegistryType
 
 public class UREncoder(
     private val ur: UR,
@@ -19,7 +20,6 @@ public class UREncoder(
         minimumFragmentLength,
         firstSequenceNumber
     )
-
 
     public companion object {
         public fun encodeSinglePartUR(ur: UR): String {
