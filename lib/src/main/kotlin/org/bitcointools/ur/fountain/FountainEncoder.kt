@@ -5,6 +5,9 @@
 
 package org.bitcointools.ur.fountain
 
+import org.bitcointools.ur.utilities.RandomSampler
+import org.bitcointools.ur.utilities.RandomXoshiro256StarStar
+import java.nio.ByteBuffer
 import java.util.Arrays
 import java.util.zip.CRC32
 import kotlin.math.ceil
@@ -23,10 +26,50 @@ public class FountainEncoder(
     private val fragmentLength: Int = findNominalFragmentLength(messageLength, minimumFragmentLength, maximumFragmentLength)
     private val segments: List<ByteArray> = partitionMessage(message, fragmentLength)
     private val sequenceLength: Int = segments.size
+    private var sequenceNumber: Long = firstSequenceNumber
+    public var isSinglePart: Boolean = sequenceLength == 1
 
     init {
         // TODO: this check is actually against an unsigned int in the Swift implementation
         require(messageLength <= Int.MAX_VALUE) { "Message is too long" }
+    }
+
+    private fun chooseFragments(sequenceNumber: Long): List<Int> {
+        return if (sequenceNumber <= sequenceLength) {
+            // TODO: Why is this Long cast back into an Int? If the sequenceNumber can be as high as an Int,
+            //       then why not have a List<Long> for the partIndexes variable?
+            listOf<Int>(sequenceNumber.toInt() - 1)
+        } else {
+            val buffer = ByteBuffer.allocate(Integer.BYTES * 2)
+            buffer.putInt(sequenceNumber.toInt())
+            buffer.putInt(checksum.toInt())
+            val seed = buffer.array()
+
+            val rng = RandomXoshiro256StarStar(seed)
+            val degree: Int = chooseDegree(sequenceLength, rng)
+            val indexes: List<Int> = List(sequenceLength) { it }
+            val shuffledIndexes: List<Int> = shuffle(indexes, rng)
+            shuffledIndexes.subList(0, degree)
+        }
+    }
+
+    private fun chooseDegree(sequenceLength: Int, rng: RandomXoshiro256StarStar): Int {
+        val degreeProbabilities: List<Double> = (1..sequenceLength).map { 1 / it.toDouble() }
+        val sampler = RandomSampler(degreeProbabilities)
+        return sampler.next(rng) + 1
+    }
+
+    private fun shuffle(indexes: List<Int>, rng: RandomXoshiro256StarStar): List<Int> {
+        val remaining: MutableList<Int> = indexes.toMutableList()
+        val shuffled: MutableList<Int> = mutableListOf()
+
+        while (remaining.isNotEmpty()) {
+            val index = rng.nextInt(0, remaining.size)
+            val item = remaining.removeAt(index)
+            shuffled.add(item)
+        }
+
+        return shuffled
     }
 
     public companion object {
