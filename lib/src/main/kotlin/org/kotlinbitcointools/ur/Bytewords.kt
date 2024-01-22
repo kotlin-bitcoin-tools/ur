@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE.txt file.
  */
 
-package org.bitcointools.ur
+package org.kotlinbitcointools.ur
 
 import java.nio.ByteBuffer
 import java.util.zip.CRC32

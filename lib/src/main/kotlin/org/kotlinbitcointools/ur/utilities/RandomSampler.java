@@ -1,4 +1,4 @@
-package org.bitcointools.ur.utilities;
+package org.kotlinbitcointools.ur.utilities;
 
 // Taken from https://github.com/sparrowwallet/hummingbird/blob/master/src/main/java/com/sparrowwallet/hummingbird/fountain/RandomSampler.java
 

@@ -3,10 +3,10 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE.txt file.
  */
 
-package org.bitcointools.ur.fountain
+package org.kotlinbitcointools.ur.fountain
 
-import org.bitcointools.ur.utilities.RandomSampler
-import org.bitcointools.ur.utilities.RandomXoshiro256StarStar
+import org.kotlinbitcointools.ur.utilities.RandomSampler
+import org.kotlinbitcointools.ur.utilities.RandomXoshiro256StarStar
 import java.nio.ByteBuffer
 import java.util.Arrays
 import java.util.zip.CRC32

@@ -1,6 +1,6 @@
-package org.bitcointools.ur
+package org.kotlinbitcointools.ur
 
-import org.bitcointools.ur.fountain.FountainEncoder
+import org.kotlinbitcointools.ur.fountain.FountainEncoder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

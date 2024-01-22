@@ -1,4 +1,4 @@
-package org.bitcointools.ur.utilities;
+package org.kotlinbitcointools.ur.utilities;
 
 /*
  * To the extent possible under law, the author has dedicated all copyright

@@ -3,10 +3,10 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE.txt file.
  */
 
-package org.bitcointools.ur
+package org.kotlinbitcointools.ur
 
-import org.bitcointools.ur.fountain.FountainEncoder
-import org.bitcointools.ur.registry.RegistryType
+import org.kotlinbitcointools.ur.fountain.FountainEncoder
+import org.kotlinbitcointools.ur.registry.RegistryType
 
 public class UREncoder(
     private val ur: UR,

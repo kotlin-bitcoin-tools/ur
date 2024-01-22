@@ -48,7 +48,7 @@ sourceSets {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "org.bitcointools"
+            groupId = "org.kotlinbitcointools"
             artifactId = "ur"
             version = libraryVersion
 
