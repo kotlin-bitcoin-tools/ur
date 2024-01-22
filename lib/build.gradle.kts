@@ -1,8 +1,7 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+    id("org.jetbrains.kotlin.jvm") version "1.9.22"
     id("java-library")
     id("maven-publish")
-    // id("java")
 }
 
 val libraryVersion: String by project
@@ -14,6 +13,7 @@ repositories {
 dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.0")
+    implementation("com.google.guava:guava:33.0.0-jre")
 }
 
 testing {
