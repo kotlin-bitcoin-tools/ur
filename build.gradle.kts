@@ -1,10 +1,12 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.22"
-    id("java-library")
-    id("maven-publish")
+    id("org.gradle.java-library")
+    id("org.gradle.maven-publish")
+    id("org.jetbrains.dokka") version "1.9.0"
 }
 
-val libraryVersion: String by project
+group = "org.kotlinbitcointools"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -21,7 +23,7 @@ testing {
         // Configure the built-in test suite
         val test by getting(JvmTestSuite::class) {
             // Use Kotlin Test test framework
-            useKotlinTest("1.9.0")
+            useKotlinTest("1.9.22")
         }
     }
 }
@@ -48,11 +50,21 @@ sourceSets {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "org.kotlinbitcointools"
+            groupId = groupId
             artifactId = "ur"
-            version = libraryVersion
+            version = version
 
             from(components["java"])
+        }
+    }
+}
+
+tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>().configureEach {
+    dokkaSourceSets {
+        named("main") {
+            moduleName.set("ur")
+            moduleVersion.set("0.0.1-SNAPSHOT")
+            // includes.from("Module.md")
         }
     }
 }
