@@ -7,9 +7,9 @@ package org.kotlinbitcointools.ur.fountain
 
 import org.kotlinbitcointools.ur.utilities.RandomSampler
 import org.kotlinbitcointools.ur.utilities.RandomXoshiro256StarStar
+import org.kotlinbitcointools.ur.utilities.crc32Checksum
 import java.nio.ByteBuffer
 import java.util.Arrays
-import java.util.zip.CRC32
 import kotlin.math.ceil
 
 // Implements Luby transform code rateless coding
@@ -22,7 +22,7 @@ public class FountainEncoder(
     private val firstSequenceNumber: Long = 0
 ) {
     private val messageLength: Int = message.size
-    public val checksum: Long = getCRC32Checksum(message)
+    public val checksum: Int = crc32Checksum(message)
     private val fragmentLength: Int = findNominalFragmentLength(messageLength, minimumFragmentLength, maximumFragmentLength)
     private val segments: List<ByteArray> = partitionMessage(message, fragmentLength)
     private val sequenceLength: Int = segments.size
@@ -42,7 +42,7 @@ public class FountainEncoder(
         } else {
             val buffer = ByteBuffer.allocate(Integer.BYTES * 2)
             buffer.putInt(sequenceNumber.toInt())
-            buffer.putInt(checksum.toInt())
+            buffer.putInt(checksum)
             val seed = buffer.array()
 
             val rng = RandomXoshiro256StarStar(seed)
@@ -106,10 +106,4 @@ public class FountainEncoder(
             }
         }
     }
-}
-
-public fun getCRC32Checksum(data: ByteArray): Long {
-    val crc32 = CRC32()
-    crc32.update(data)
-    return crc32.value
 }
