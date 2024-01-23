@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.0")
     implementation("com.google.guava:guava:33.0.0-jre")
 }
