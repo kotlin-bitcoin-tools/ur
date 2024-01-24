@@ -1,4 +1,13 @@
-plugins {}
-
 rootProject.name = "ur"
-include("lib")
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}

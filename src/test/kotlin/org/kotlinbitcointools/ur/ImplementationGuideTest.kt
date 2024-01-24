@@ -4,7 +4,7 @@ import com.google.common.primitives.Ints
 import org.kotlinbitcointools.ur.fountain.FountainDecoder
 import org.kotlinbitcointools.ur.fountain.FountainEncoder
 import org.kotlinbitcointools.ur.fountain.chooseDegree
-import org.kotlinbitcointools.ur.fountain.hummingBirdShuffle
+import org.kotlinbitcointools.ur.fountain.chooseFragments
 import org.kotlinbitcointools.ur.fountain.shuffle
 import org.kotlinbitcointools.ur.utilities.RandomSampler
 import org.kotlinbitcointools.ur.utilities.RandomXoshiro256StarStar
@@ -219,7 +219,7 @@ class ImplementationGuideTest {
 
     // This test is not in the implementation guide but is the better version of the test in it.
     @Test
-    fun `Fisher-Yates Shuffle better test`() {
+    fun `Fisher-Yates Shuffle more explicit test`() {
         val indexes: List<Int> = (1..10).toList()
 
         val result = indexes.map { count ->
@@ -243,6 +243,136 @@ class ImplementationGuideTest {
         assertEquals(
             expected = expectedResult,
             actual = result
+        )
+    }
+
+    @Test
+    fun `Fragment chooser`() {
+        val message: ByteArray = makeMessage(1024, "Wolf")
+        val checksum: Int = crc32Checksum(message)
+        val fragmentLength = FountainEncoder.findNominalFragmentLength(message.size, 10, 100)
+        val fragments = FountainEncoder.partitionMessage(message, fragmentLength)
+        val fragmentIndexes = (1..50).map { number ->
+            chooseFragments(number.toLong(), fragments.size, checksum).sorted()
+        }.toList()
+
+        val expectedFragmentIndexes = listOf(
+            // Fixed-rate parts
+            listOf(0),
+            listOf(1),
+            listOf(2),
+            listOf(3),
+            listOf(4),
+            listOf(5),
+            listOf(6),
+            listOf(7),
+            listOf(8),
+            listOf(9),
+            listOf(10),
+
+            // Rateless parts
+            listOf(9),
+            listOf(2, 5, 6, 8, 9, 10),
+            listOf(8),
+            listOf(1, 5),
+            listOf(1),
+            listOf(0, 2, 4, 5, 8, 10),
+            listOf(5),
+            listOf(2),
+            listOf(2),
+            listOf(0, 1, 3, 4, 5, 7, 9, 10),
+            listOf(0, 1, 2, 3, 5, 6, 8, 9, 10),
+            listOf(0, 2, 4, 5, 7, 8, 9, 10),
+            listOf(3, 5),
+            listOf(4),
+            listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+            listOf(0, 1, 3, 4, 5, 6, 7, 9, 10),
+            listOf(6),
+            listOf(5, 6),
+            listOf(7),
+            listOf(4, 9, 10),
+            listOf(5),
+            listOf(10),
+            listOf(1, 3, 4, 5),
+            listOf(6, 8),
+            listOf(9),
+            listOf(4, 5, 6, 8),
+            listOf(4),
+            listOf(0, 10),
+            listOf(2, 5, 7, 10),
+            listOf(4),
+            listOf(0, 2, 4, 6, 7, 10),
+            listOf(9),
+            listOf(1),
+            listOf(3, 6),
+            listOf(3, 8),
+            listOf(1, 2, 6, 9),
+            listOf(0, 2, 4, 5, 6, 7, 9),
+            listOf(0, 4),
+            listOf(9),
+        )
+
+        assertEquals(
+            expected = expectedFragmentIndexes,
+            actual = fragmentIndexes
+        )
+    }
+
+    // The Swift implementation uses a UInt for the sequenceNumber, but if I switch the Kotlin version
+    // to use a UInt, the CBOR encoding is different. Investigate why. I'm going to leave it as a Long for now.
+    // This matches the Hummingbird implementation.
+    @Test
+    fun `CBOR encoder`() {
+        val part: FountainEncoder.Part = FountainEncoder.Part(
+            sequenceNumber = 12,
+            sequenceLength = 8,
+            messageLength = 100,
+            checksum = 0x12345678,
+            data = byteArrayOf(0x01, 0x05, 0x03, 0x03, 0x05)
+        )
+        val cbor = part.toCborBytes()
+
+        println("CBOR: ${cbor.toHexString()}")
+
+        val expectedCbor = "850c0818641a12345678450105030305"
+
+        // TODO: Clean up this test
+        assertEquals(
+            expected = expectedCbor,
+            actual = cbor.toHexString()
+        )
+
+        val decodedPart = FountainEncoder.Part.fromCborBytes(cbor)
+
+        assertEquals(
+            expected = cbor.toHexString(),
+            actual = decodedPart.toCborBytes().toHexString()
+        )
+    }
+
+    @Test
+    fun XOR() {
+        val rng = RandomXoshiro256StarStar("Wolf")
+        val data1 = ByteArray(10)
+        rng.nextData(data1)
+
+        assertEquals(
+            expected = "916ec65cf77cadf55cd7",
+            actual = data1.toHexString()
+        )
+
+        val data2 = ByteArray(10)
+        rng.nextData(data2)
+
+        assertEquals(
+            expected = "f9cda1a1030026ddd42e",
+            actual = data2.toHexString()
+        )
+
+        val xor = FountainEncoder.xor(data1, data2)
+        assertEquals(
+            expected = "68a367fdf47c8b2888f9",
+            actual = xor.toHexString()
         )
     }
 }

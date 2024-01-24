@@ -7,25 +7,12 @@ package org.kotlinbitcointools.ur.fountain
 
 import org.kotlinbitcointools.ur.utilities.RandomSampler
 import org.kotlinbitcointools.ur.utilities.RandomXoshiro256StarStar
+import java.nio.ByteBuffer
 
 public fun chooseDegree(sequenceLength: Int, rng: RandomXoshiro256StarStar): Int {
     val degreeProbabilities: List<Double> = (1..sequenceLength).map { 1 / it.toDouble() }.toList()
     val randomSampler = RandomSampler(degreeProbabilities)
     return randomSampler.next(rng) + 1
-}
-
-// This is the Hummingbird implementation.
-public fun hummingBirdShuffle(items: List<Int>, rng: RandomXoshiro256StarStar): List<Int> {
-    val remaining: MutableList<Int> = items.toMutableList()
-    val shuffled: MutableList<Int> = mutableListOf()
-
-    while (remaining.isNotEmpty()) {
-        val index = rng.nextInt(0, remaining.size)
-        val item: Int = remaining.removeAt(index)
-        shuffled.add(item)
-    }
-
-    return shuffled
 }
 
 public fun shuffle(items: List<Int>, rng: RandomXoshiro256StarStar, count: Int): List<Int> {
@@ -39,4 +26,22 @@ public fun shuffle(items: List<Int>, rng: RandomXoshiro256StarStar, count: Int):
     }
 
     return result
+}
+
+// TODO: Look into better understanding this function
+public fun chooseFragments(sequenceNumber: Long, sequenceLength: Int, checksum: Int): List<Int> {
+    if (sequenceNumber <= sequenceLength) {
+        return listOf((sequenceNumber - 1).toInt())
+    } else {
+        val buffer = ByteBuffer.allocate(Integer.BYTES * 2)
+        buffer.putInt(sequenceNumber.toInt())
+        buffer.putInt(checksum)
+
+        val rng = RandomXoshiro256StarStar(buffer.array())
+        val degree = chooseDegree(sequenceLength, rng)
+        val indexes = (0 until sequenceLength).toList()
+        val shuffledIndexes = shuffle(indexes, rng, degree)
+
+        return shuffledIndexes
+    }
 }

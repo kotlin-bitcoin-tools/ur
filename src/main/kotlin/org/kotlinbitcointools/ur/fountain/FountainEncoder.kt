@@ -5,10 +5,9 @@
 
 package org.kotlinbitcointools.ur.fountain
 
-import org.kotlinbitcointools.ur.utilities.RandomSampler
-import org.kotlinbitcointools.ur.utilities.RandomXoshiro256StarStar
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory
 import org.kotlinbitcointools.ur.utilities.crc32Checksum
-import java.nio.ByteBuffer
 import java.util.Arrays
 import kotlin.math.ceil
 
@@ -18,8 +17,8 @@ import kotlin.math.ceil
 public class FountainEncoder(
     private val message: ByteArray,
     private val maximumFragmentLength: Int,
-    private val minimumFragmentLength: Int = 10,
-    private val firstSequenceNumber: Long = 0
+    private val minimumFragmentLength: Int,
+    private val firstSequenceNumber: Long
 ) {
     private val messageLength: Int = message.size
     public val checksum: Int = crc32Checksum(message)
@@ -34,42 +33,33 @@ public class FountainEncoder(
         require(messageLength <= Int.MAX_VALUE) { "Message is too long" }
     }
 
-    private fun chooseFragments(sequenceNumber: Long): List<Int> {
-        return if (sequenceNumber <= sequenceLength) {
-            // TODO: Why is this Long cast back into an Int? If the sequenceNumber can be as high as an Int,
-            //       then why not have a List<Long> for the partIndexes variable?
-            listOf<Int>(sequenceNumber.toInt() - 1)
-        } else {
-            val buffer = ByteBuffer.allocate(Integer.BYTES * 2)
-            buffer.putInt(sequenceNumber.toInt())
-            buffer.putInt(checksum)
-            val seed = buffer.array()
-
-            val rng = RandomXoshiro256StarStar(seed)
-            val degree: Int = chooseDegree(sequenceLength, rng)
-            val indexes: List<Int> = List(sequenceLength) { it }
-            val shuffledIndexes: List<Int> = shuffle(indexes, rng)
-            shuffledIndexes.subList(0, degree)
-        }
-    }
-
-    private fun chooseDegree(sequenceLength: Int, rng: RandomXoshiro256StarStar): Int {
-        val degreeProbabilities: List<Double> = (1..sequenceLength).map { 1 / it.toDouble() }
-        val sampler = RandomSampler(degreeProbabilities)
-        return sampler.next(rng) + 1
-    }
-
-    private fun shuffle(indexes: List<Int>, rng: RandomXoshiro256StarStar): List<Int> {
-        val remaining: MutableList<Int> = indexes.toMutableList()
-        val shuffled: MutableList<Int> = mutableListOf()
-
-        while (remaining.isNotEmpty()) {
-            val index = rng.nextInt(0, remaining.size)
-            val item = remaining.removeAt(index)
-            shuffled.add(item)
+    public class Part(
+        public val sequenceNumber: Long,
+        public val sequenceLength: Int,
+        public val messageLength: Int,
+        public val checksum: Int,
+        public val data: ByteArray
+    ) {
+        public fun toCborBytes(): ByteArray {
+            val cborMapper = ObjectMapper(CBORFactory())
+            val array = arrayOf(sequenceNumber, sequenceLength, messageLength, checksum, data)
+            return cborMapper.writeValueAsBytes(array)
         }
 
-        return shuffled
+        public companion object {
+            public fun fromCborBytes(cborBytes: ByteArray): Part {
+                val cborMapper = ObjectMapper(CBORFactory())
+                val array: Array<Any> = cborMapper.readValue(cborBytes, Array<Any>::class.java)
+
+                return Part(
+                    sequenceNumber = (array[0] as Number).toLong(),
+                    sequenceLength = (array[1] as Number).toInt(),
+                    messageLength = (array[2] as Number).toInt(),
+                    checksum = (array[3] as Number).toInt(),
+                    data = array[4] as ByteArray
+                )
+            }
+        }
     }
 
     public companion object {
@@ -104,6 +94,16 @@ public class FountainEncoder(
                 val end = start + fragmentLength
                 Arrays.copyOfRange(message, start, end)
             }
+        }
+
+        // TODO: Throw if the arrays passed are not of the same size
+        public fun xor(a: ByteArray, b: ByteArray): ByteArray {
+            val result = ByteArray(a.size)
+            for (i in result.indices) {
+                result[i] = ((a[i].toInt()) xor (b[i].toInt())).toByte()
+            }
+
+            return result
         }
     }
 }
