@@ -16,16 +16,17 @@ import kotlin.math.ceil
 
 public class FountainEncoder(
     private val message: ByteArray,
-    private val maximumFragmentLength: Int,
-    private val minimumFragmentLength: Int,
-    private val firstSequenceNumber: Long
+    maximumFragmentLen: Int? = null,
+    private val minimumFragmentLength: Int = 1,
+    private val firstSequenceNumber: UInt = 0u
 ) {
     private val messageLength: Int = message.size
     public val checksum: Int = crc32Checksum(message)
+    private val maximumFragmentLength: Int = maximumFragmentLen ?: messageLength
     private val fragmentLength: Int = findNominalFragmentLength(messageLength, minimumFragmentLength, maximumFragmentLength)
-    private val segments: List<ByteArray> = partitionMessage(message, fragmentLength)
-    private val sequenceLength: Int = segments.size
-    private var sequenceNumber: Long = firstSequenceNumber
+    private val fragments: List<ByteArray> = partitionMessage(message, fragmentLength)
+    public val sequenceLength: Int = fragments.size
+    private var sequenceNumber: UInt = firstSequenceNumber
     public var isSinglePart: Boolean = sequenceLength == 1
 
     init {
@@ -33,13 +34,37 @@ public class FountainEncoder(
         require(messageLength <= Int.MAX_VALUE) { "Message is too long" }
     }
 
-    public class Part(
+    public fun nextPart(): Part {
+        sequenceNumber++
+        require(sequenceNumber == 1u || sequenceLength > 1) { "Cannot call nextPart() more than once on single-part messages" }
+        val partIndexes = chooseFragments(sequenceNumber.toLong(), sequenceLength, checksum)
+        val mixed = mix(partIndexes)
+        return Part(sequenceNumber.toLong(), sequenceLength, messageLength, checksum, mixed)
+    }
+
+    private fun mix(partIndexes: Set<Int>): ByteArray {
+        return partIndexes.fold(ByteArray(fragmentLength)) { result, index ->
+            xor(fragments[index], result)
+        }
+    }
+
+    public fun isComplete(): Boolean {
+        return sequenceNumber.toLong() >= sequenceLength.toLong()
+    }
+
+    // TODO: Implement equals() and hashCode() because of the data: ByteArray property
+    @OptIn(ExperimentalStdlibApi::class)
+    public data class Part(
         public val sequenceNumber: Long,
         public val sequenceLength: Int,
         public val messageLength: Int,
         public val checksum: Int,
         public val data: ByteArray
     ) {
+        public override fun toString(): String {
+            return "Part(sequenceNumber=$sequenceNumber, sequenceLength=$sequenceLength, messageLength=$messageLength, checksum=$checksum, data=${data.toHexString()})"
+        }
+
         public fun toCborBytes(): ByteArray {
             val cborMapper = ObjectMapper(CBORFactory())
             val array = arrayOf(sequenceNumber, sequenceLength, messageLength, checksum, data)

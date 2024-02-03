@@ -12,7 +12,7 @@ public class UREncoder(
     private val ur: UR,
     maximumFragmentLength: Int,
     minimumFragmentLength: Int = 10,
-    firstSequenceNumber: Long = 0,
+    firstSequenceNumber: UInt = 0u,
 ) {
     private val fountainEncoder: FountainEncoder = FountainEncoder(
         ur.cborBytes,
