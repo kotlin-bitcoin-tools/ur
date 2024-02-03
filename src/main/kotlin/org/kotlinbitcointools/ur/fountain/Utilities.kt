@@ -29,9 +29,9 @@ public fun shuffle(items: List<Int>, rng: RandomXoshiro256StarStar, count: Int):
 }
 
 // TODO: Look into better understanding this function
-public fun chooseFragments(sequenceNumber: Long, sequenceLength: Int, checksum: Int): List<Int> {
+public fun chooseFragments(sequenceNumber: Long, sequenceLength: Int, checksum: Int): Set<Int> {
     if (sequenceNumber <= sequenceLength) {
-        return listOf((sequenceNumber - 1).toInt())
+        return setOf((sequenceNumber - 1).toInt())
     } else {
         val buffer = ByteBuffer.allocate(Integer.BYTES * 2)
         buffer.putInt(sequenceNumber.toInt())
@@ -42,6 +42,6 @@ public fun chooseFragments(sequenceNumber: Long, sequenceLength: Int, checksum: 
         val indexes = (0 until sequenceLength).toList()
         val shuffledIndexes = shuffle(indexes, rng, degree)
 
-        return shuffledIndexes
+        return shuffledIndexes.toSet()
     }
 }
