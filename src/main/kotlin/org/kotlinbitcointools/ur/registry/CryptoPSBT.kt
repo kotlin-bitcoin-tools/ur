@@ -9,18 +9,18 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory
 import org.kotlinbitcointools.ur.UR
 
-public class CryptoPSBT(
-    public val psbt: Psbt,
-): RegistryItem {
-    override val registryType: RegistryType = RegistryType.CRYPTO_PSBT
-
-    public override fun toUR(): UR {
-        val objectMapper = ObjectMapper(CBORFactory())
-        val cbor: ByteArray = objectMapper.writeValueAsBytes(psbt.psbt)
-        return UR(registryType, cbor)
-    }
-}
-
-public class Psbt(
-    public val psbt: ByteArray
-)
+// public class PSBT(
+//     public val psbt: Psbt,
+// ): RegistryItem {
+//     override val registryType: RegistryType = RegistryType.PSBT
+//
+//     public override fun toUR(): UR {
+//         val objectMapper = ObjectMapper(CBORFactory())
+//         val cbor: ByteArray = objectMapper.writeValueAsBytes(psbt.psbt)
+//         return UR(registryType, cbor)
+//     }
+// }
+//
+// public class Psbt(
+//     public val psbt: ByteArray
+// )
