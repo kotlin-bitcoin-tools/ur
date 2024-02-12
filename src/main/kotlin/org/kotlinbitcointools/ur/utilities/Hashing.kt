@@ -8,10 +8,10 @@ package org.kotlinbitcointools.ur.utilities
 import java.security.MessageDigest
 import java.util.zip.CRC32
 
-public fun crc32Checksum(input: ByteArray): Int {
+public fun crc32Checksum(input: ByteArray): Long {
     val crc32 = CRC32()
     crc32.update(input)
-    return crc32.value.toInt()
+    return crc32.value
 }
 
 public fun sha256(input: ByteArray): ByteArray {

@@ -8,12 +8,12 @@ package org.kotlinbitcointools.ur
 import org.kotlinbitcointools.ur.registry.RegistryType
 
 
-public class UR(public val registryType: RegistryType, public val cborBytes: ByteArray) {
-    /**
-     * Returns the UR as a string, always a single-part UR.
-     */
+public class UR(
+    public val registryType: RegistryType,
+    public val cborBytes: ByteArray
+) {
     public override fun toString(): String {
-        return UREncoder.encodeSinglePartUR(this)
+        return UREncoder.encode(this)
     }
 
     public companion object {
@@ -21,10 +21,10 @@ public class UR(public val registryType: RegistryType, public val cborBytes: Byt
     }
 }
 
-public fun Char.isValidURCharacter(): Boolean {
-    return this in 'A'..'Z' || this in 'a'..'z' || this in '0'..'9' || this == '-'
-}
-
-public fun String.isURType(): Boolean {
-    return this.all { it.isValidURCharacter() }
-}
+// public fun Char.isValidURCharacter(): Boolean {
+//     return this in 'A'..'Z' || this in 'a'..'z' || this in '0'..'9' || this == '-'
+// }
+//
+// public fun String.isURType(): Boolean {
+//     return this.all { it.isValidURCharacter() }
+// }

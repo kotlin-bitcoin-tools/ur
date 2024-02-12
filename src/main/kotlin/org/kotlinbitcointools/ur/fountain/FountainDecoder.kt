@@ -23,7 +23,7 @@ public class FountainDecoder {
     private val receivedFragmentIndexes: MutableSet<Int> = mutableSetOf()
     private var expectedFragmentLen = 0
     private var expectedMessageLen = 0
-    private var expectedChecksum: Int = 0
+    private var expectedChecksum: Long = 0
 
     // TODO: Write up what is this variable really used for
     private var lastFragmentIndexes: Set<Int>? = null
@@ -42,7 +42,7 @@ public class FountainDecoder {
         if (!isPartValid(encoderPart)) return false
 
         // Add this part to the queue
-        val fragmentIndexes = chooseFragments(encoderPart.sequenceNumber, encoderPart.sequenceLength, encoderPart.checksum)
+        val fragmentIndexes: Set<Int> = chooseFragments(encoderPart.sequenceNumber, encoderPart.sequenceLength, encoderPart.checksum)
         val part = Part(encoderPart, fragmentIndexes)
         lastFragmentIndexes = fragmentIndexes
         enqueue(part)

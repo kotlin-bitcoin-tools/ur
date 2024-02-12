@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 thunderbiscuit and contributors.
+ * Copyright 2023-2024 thunderbiscuit and contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the ./LICENSE.txt file.
  */
 
@@ -9,8 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory
 import org.kotlinbitcointools.ur.UR
 
-public class UrBytes(
-    public val data: ByteArray,
+public class Bytes(
+    private val data: ByteArray,
 ): RegistryItem {
     override val registryType: RegistryType = RegistryType.BYTES
 

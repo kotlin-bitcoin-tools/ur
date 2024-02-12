@@ -18,32 +18,31 @@ public class FountainEncoder(
     private val message: ByteArray,
     maximumFragmentLen: Int? = null,
     private val minimumFragmentLength: Int = 1,
-    private val firstSequenceNumber: UInt = 0u
+    private val firstSequenceNumber: Int = 0
 ) {
     private val messageLength: Int = message.size
-    public val checksum: Int = crc32Checksum(message)
+    public val checksum: Long = crc32Checksum(message)
     private val maximumFragmentLength: Int = maximumFragmentLen ?: messageLength
     private val fragmentLength: Int = findNominalFragmentLength(messageLength, minimumFragmentLength, maximumFragmentLength)
     private val fragments: List<ByteArray> = partitionMessage(message, fragmentLength)
     public val sequenceLength: Int = fragments.size
-    private var sequenceNumber: UInt = firstSequenceNumber
+    private var sequenceNumber: Int = firstSequenceNumber
     public var isSinglePart: Boolean = sequenceLength == 1
 
     init {
-        // TODO: this check is actually against an unsigned int in the Swift implementation
         require(messageLength <= Int.MAX_VALUE) { "Message is too long" }
     }
 
     public fun nextPart(): Part {
         sequenceNumber++
-        require(sequenceNumber == 1u || sequenceLength > 1) { "Cannot call nextPart() more than once on single-part messages" }
-        val partIndexes = chooseFragments(sequenceNumber.toLong(), sequenceLength, checksum)
+        require(sequenceNumber == 1 || sequenceLength > 1) { "Cannot call nextPart() more than once on single-part messages" }
+        val partIndexes = chooseFragments(sequenceNumber, sequenceLength, checksum)
         val mixed = mix(partIndexes)
-        return Part(sequenceNumber.toLong(), sequenceLength, messageLength, checksum, mixed)
+        return Part(sequenceNumber, sequenceLength, messageLength, checksum, mixed)
     }
 
     private fun mix(partIndexes: Set<Int>): ByteArray {
-        return partIndexes.fold(ByteArray(fragmentLength)) { result, index ->
+        return partIndexes.fold(ByteArray(fragmentLength.toInt())) { result, index ->
             xor(fragments[index], result)
         }
     }
@@ -55,20 +54,25 @@ public class FountainEncoder(
     // TODO: Implement equals() and hashCode() because of the data: ByteArray property
     @OptIn(ExperimentalStdlibApi::class)
     public data class Part(
-        public val sequenceNumber: Long,
+        public val sequenceNumber: Int,
         public val sequenceLength: Int,
         public val messageLength: Int,
-        public val checksum: Int,
+        public val checksum: Long,
         public val data: ByteArray
     ) {
         public override fun toString(): String {
             return "Part(sequenceNumber=$sequenceNumber, sequenceLength=$sequenceLength, messageLength=$messageLength, checksum=$checksum, data=${data.toHexString()})"
         }
 
+        // Note: The CBOR library used here is Java-based, meaning it doesn't handle UInt! The data type you get if you
+        //       use a UInt in the data class and serialize to CBOR is just wrong. CBOR playgrounds show an empty map:
+        //       map(*) primitive(*), which is is of course incorrect. The solution is to take a page out of the
+        //       fantastic Hummingbird library and use a Long instead of a UInt.
         public fun toCborBytes(): ByteArray {
             val cborMapper = ObjectMapper(CBORFactory())
             val array = arrayOf(sequenceNumber, sequenceLength, messageLength, checksum, data)
-            return cborMapper.writeValueAsBytes(array)
+            val bytes: ByteArray = cborMapper.writeValueAsBytes(array)
+            return bytes
         }
 
         public companion object {
@@ -77,10 +81,10 @@ public class FountainEncoder(
                 val array: Array<Any> = cborMapper.readValue(cborBytes, Array<Any>::class.java)
 
                 return Part(
-                    sequenceNumber = (array[0] as Number).toLong(),
+                    sequenceNumber = (array[0] as Number).toInt(),
                     sequenceLength = (array[1] as Number).toInt(),
                     messageLength = (array[2] as Number).toInt(),
-                    checksum = (array[3] as Number).toInt(),
+                    checksum = (array[3] as Number).toLong(),
                     data = array[4] as ByteArray
                 )
             }
@@ -103,7 +107,7 @@ public class FountainEncoder(
             val maximumFragmentCount = (messageLength / minimumFragmentLength).coerceAtLeast(1)
             var fragmentLength = 0
             (1..maximumFragmentCount).forEach { fragmentCount ->
-                fragmentLength = ceil(messageLength.toDouble() / fragmentCount).toInt()
+                fragmentLength = ceil(messageLength.toDouble() / fragmentCount.toDouble()).toInt()
                 if (fragmentLength <= maximumFragmentLength) {
                     return fragmentLength
                 }
@@ -112,11 +116,11 @@ public class FountainEncoder(
         }
 
         internal fun partitionMessage(message: ByteArray, fragmentLength: Int): List<ByteArray> {
-            val fragmentCount = ceil(message.size / fragmentLength.toDouble()).toInt()
+            val fragmentCount = ceil(message.size / fragmentLength.toDouble())
 
-            return (0 until fragmentCount).map { fragmentIndex ->
-                val start = fragmentIndex * fragmentLength
-                val end = start + fragmentLength
+            return (0 until fragmentCount.toInt()).map { fragmentIndex ->
+                val start = fragmentIndex * fragmentLength.toInt()
+                val end = start + fragmentLength.toInt()
                 Arrays.copyOfRange(message, start, end)
             }
         }

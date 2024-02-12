@@ -7,5 +7,5 @@ package org.kotlinbitcointools.ur.registry
 
 public enum class RegistryType(public val type: String) {
     BYTES("bytes"),
-    CRYPTO_PSBT("crypto-psbt"),
+    // PSBT("psbt"),
 }

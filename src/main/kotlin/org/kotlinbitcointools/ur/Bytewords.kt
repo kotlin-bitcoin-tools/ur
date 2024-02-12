@@ -16,8 +16,22 @@ public class Bytewords {
     }
 
     public companion object {
-        public fun encodeMinimal(cbor: ByteArray): String {
-            val dataAndChecksum = appendChecksum(cbor)
+        public fun encode(data: ByteArray, style: Style): String {
+            return when (style) {
+                Style.STANDARD -> encode(data, " ")
+                Style.URI      -> encode(data, "-")
+                Style.MINIMAL  -> encodeMinimal(data)
+            }
+        }
+
+        private fun encode(data: ByteArray, separator: String): String {
+            return data.joinToString(separator) { byte ->
+                byteToWord(byte)
+            }
+        }
+
+        private fun encodeMinimal(data: ByteArray): String {
+            val dataAndChecksum = appendChecksum(data)
             return dataAndChecksum.joinToString("") { byte ->
                 byteToMinimalWord(byte)
             }
@@ -26,11 +40,9 @@ public class Bytewords {
         private fun appendChecksum(data: ByteArray): ByteArray {
             val crc32 = CRC32()
             crc32.update(data)
-
             val eightBytesBuffer = ByteBuffer.allocate(Long.SIZE_BYTES)
             eightBytesBuffer.putLong(crc32.value)
             val checksum = eightBytesBuffer.array().sliceArray(4..7)
-
             return data + checksum
         }
 
