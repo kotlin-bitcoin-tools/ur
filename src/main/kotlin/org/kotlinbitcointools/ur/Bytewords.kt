@@ -5,6 +5,7 @@
 
 package org.kotlinbitcointools.ur
 
+import org.kotlinbitcointools.ur.utilities.crc32Checksum
 import java.nio.ByteBuffer
 import java.util.zip.CRC32
 
@@ -24,8 +25,17 @@ public class Bytewords {
             }
         }
 
+        public fun decode(encoded: String, style: Style): ByteArray {
+            return when (style) {
+                Style.STANDARD -> decode(encoded, " ")
+                Style.URI      -> decode(encoded, "-")
+                Style.MINIMAL  -> decodeMinimal(encoded)
+            }
+        }
+
         private fun encode(data: ByteArray, separator: String): String {
-            return data.joinToString(separator) { byte ->
+            val dataAndChecksum = appendChecksum(data)
+            return dataAndChecksum.joinToString(separator) { byte ->
                 byteToWord(byte)
             }
         }
@@ -37,13 +47,54 @@ public class Bytewords {
             }
         }
 
+        private fun decode(encoded: String, separator: String): ByteArray {
+            val words: List<String> = encoded.split(separator)
+            val bytes: List<Byte> = words.map { word ->
+                println("Looking for word: $word")
+                wordToByte(word)
+            }
+            val dataAndChecksum: ByteArray = bytes.toByteArray()
+            return stripChecksum(dataAndChecksum)
+        }
+
+        private fun decodeMinimal(encoded: String): ByteArray {
+            val words: List<String> = encoded.chunked(2)
+            val bytes: List<Byte> = words.map { word ->
+                minimalWordToByte(word)
+            }
+            val dataAndChecksum: ByteArray = bytes.toByteArray()
+            return stripChecksum(dataAndChecksum)
+        }
+
         private fun appendChecksum(data: ByteArray): ByteArray {
             val crc32 = CRC32()
             crc32.update(data)
-            val eightBytesBuffer = ByteBuffer.allocate(Long.SIZE_BYTES)
-            eightBytesBuffer.putLong(crc32.value)
-            val checksum = eightBytesBuffer.array().sliceArray(4..7)
+
+            val checksum = ByteBuffer.allocate(Long.SIZE_BYTES)
+                .putLong(crc32.value)
+                .array()
+                .takeLast(4)
+                .toByteArray()
+
             return data + checksum
+        }
+
+        private fun stripChecksum(dataAndChecksum: ByteArray): ByteArray {
+            val checksumSize = 4
+            val messageSize = dataAndChecksum.size - checksumSize
+            if (checksumSize > dataAndChecksum.size) throw InvalidChecksumException("Data is too short to contain a checksum")
+
+            val message = dataAndChecksum.sliceArray(0..<messageSize)
+            val checksum = dataAndChecksum.sliceArray(messageSize..<dataAndChecksum.size)
+            val computedChecksum = ByteBuffer.allocate(Long.SIZE_BYTES)
+                .putLong(crc32Checksum(message))
+                .array()
+                .takeLast(4)
+                .toByteArray()
+
+            if (!checksum.contentEquals(computedChecksum)) throw InvalidChecksumException("Checksum does not match")
+
+            return message
         }
 
         private fun byteToWord(byte: Byte): String {
@@ -53,7 +104,23 @@ public class Bytewords {
         private fun byteToMinimalWord(byte: Byte): String {
             return minimalBytewordsList[byte.toInt() and 0xFF]
         }
+
+        // The indexOf() method returns -1 if the element is not found in the list
+        private fun wordToByte(word: String): Byte {
+            return bytewordsList.indexOf(word).let { index ->
+                if (index == -1) throw InvalidBytewordException("Word not found in bytewords list: $word")
+                index.toByte()
+            }
+        }
+
+        private fun minimalWordToByte(word: String): Byte {
+            return minimalBytewordsList.indexOf(word).let { index ->
+                if (index == -1) throw InvalidBytewordException("Word not found in bytewords list: $word")
+                index.toByte()
+            }
+        }
     }
+
 }
 
 private val bytewordsList: List<String> = listOf(
@@ -91,7 +158,7 @@ private val bytewordsList: List<String> = listOf(
     "yoga", "yurt", "zaps", "zero", "zest", "zinc", "zone", "zoom"
 )
 
-public val minimalBytewordsList: List<String> = listOf(
+private val minimalBytewordsList: List<String> = listOf(
     "ae", "ad", "ao", "ax", "aa", "ah", "am", "at",
     "ay", "as", "bk", "bd", "bn", "bt", "ba", "bs",
     "be", "by", "bg", "bw", "bb", "bz", "cm", "ch",

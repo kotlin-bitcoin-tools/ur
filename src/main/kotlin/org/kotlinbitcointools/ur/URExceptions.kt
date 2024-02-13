@@ -12,3 +12,9 @@ public class InvalidSchemeException(message: String?) : URException(message)
 public class InvalidPathLengthException(message: String?) : URException(message)
 
 public class UnsupportedRegistryTypeException(message: String?) : URException(message)
+
+public class InvalidSequenceComponentException(message: String?) : URException(message)
+
+public class InvalidChecksumException(message: String?) : URException(message)
+
+public class InvalidBytewordException(message: String?) : URException(message)
