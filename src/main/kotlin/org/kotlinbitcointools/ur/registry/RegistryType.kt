@@ -5,7 +5,17 @@
 
 package org.kotlinbitcointools.ur.registry
 
+import org.kotlinbitcointools.ur.UnsupportedRegistryTypeException
+
 public enum class RegistryType(public val type: String) {
-    BYTES("bytes"),
-    // PSBT("psbt"),
+    BYTES("bytes");
+
+    public companion object {
+        public fun fromString(type: String): RegistryType {
+            return when (type) {
+                "bytes" -> BYTES
+                else -> throw UnsupportedRegistryTypeException("Unsupported registry type: $type")
+            }
+        }
+    }
 }

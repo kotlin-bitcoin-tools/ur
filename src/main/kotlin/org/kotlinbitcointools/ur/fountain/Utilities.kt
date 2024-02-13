@@ -29,18 +29,18 @@ public fun shuffle(items: List<Int>, rng: RandomXoshiro256StarStar, count: Int):
 }
 
 // TODO: Look into better understanding this function
-// TODO: checksum.toInt() is potentially problematic
 public fun chooseFragments(sequenceNumber: Int, sequenceLength: Int, checksum: Long): Set<Int> {
     if (sequenceNumber <= sequenceLength) {
         return setOf(sequenceNumber - 1)
     } else {
-        val buffer = ByteBuffer.allocate(Integer.BYTES * 2)
-        buffer.putInt(sequenceNumber.toInt())
-        buffer.putInt(checksum.toInt())
+        val seed = ByteBuffer.allocate(Long.SIZE_BYTES)
+            .putInt(sequenceNumber)
+            .putInt(checksum.toInt())
+            .array()
 
-        val rng = RandomXoshiro256StarStar(buffer.array())
+        val rng = RandomXoshiro256StarStar(seed)
         val degree = chooseDegree(sequenceLength, rng)
-        val indexes = (0 until sequenceLength).toList()
+        val indexes = (0..<sequenceLength).toList()
         val shuffledIndexes = shuffle(indexes, rng, degree)
 
         return shuffledIndexes.toSet()

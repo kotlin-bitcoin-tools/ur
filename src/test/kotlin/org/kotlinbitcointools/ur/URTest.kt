@@ -55,4 +55,27 @@ class URTest {
             actual = parts
         )
     }
+
+    @Test
+    fun `Encoding and decoding URs`() {
+        val expectedUR: UR = makeMessageUR(32767, "Wolf")
+        val encoder: UREncoder = UREncoder(
+            ur = expectedUR,
+            maximumFragmentLength = 1000,
+            minimumFragmentLength = 10,
+            firstSequenceNumber = 100
+        )
+        val decoder: URDecoder = URDecoder()
+
+        while (decoder.result == null) {
+            val part: String = encoder.nextPart()
+            decoder.receivePart(part)
+        }
+        val result: UR = decoder.result!!.getOrThrow()
+
+        assertEquals(
+            expected = expectedUR.toString(),
+            actual = result.toString()
+        )
+    }
 }

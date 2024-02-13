@@ -26,6 +26,7 @@ public class FountainEncoder(
     private val fragmentLength: Int = findNominalFragmentLength(messageLength, minimumFragmentLength, maximumFragmentLength)
     private val fragments: List<ByteArray> = partitionMessage(message, fragmentLength)
     public val sequenceLength: Int = fragments.size
+    // NOTE: The sequence number is a Long in Hummingbird and a UInt in the Swift implementation
     private var sequenceNumber: Int = firstSequenceNumber
     public var isSinglePart: Boolean = sequenceLength == 1
 
