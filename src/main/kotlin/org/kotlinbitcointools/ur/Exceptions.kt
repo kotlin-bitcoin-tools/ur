@@ -5,7 +5,10 @@
 
 package org.kotlinbitcointools.ur
 
+// This library defines two families of exceptions: URException and FountainException.
+
 public abstract class URException(message: String?) : Exception(message)
+public abstract class FountainException(message: String?) : Exception(message)
 
 public class InvalidSchemeException(message: String?) : URException(message)
 
