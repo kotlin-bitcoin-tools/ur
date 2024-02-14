@@ -8,6 +8,7 @@ class URTest {
     fun `Single part bytes type UR`() {
         val urExpectedSinglePart = "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
         val ur: UR = makeMessageUR(50, "Wolf")
+
         val urEncoded = UREncoder.encode(ur)
 
         assertEquals(
@@ -18,15 +19,6 @@ class URTest {
 
     @Test
     fun `Multi-part UR`() {
-        val ur: UR = makeMessageUR(256, "Wolf")
-        val encoder: UREncoder = UREncoder(
-            ur = ur,
-            maximumFragmentLength = 30,
-            minimumFragmentLength = 10,
-            firstSequenceNumber = 0
-        )
-
-        val parts: List<String> = List(20) { encoder.nextPart() }
         val expectedParts = listOf(
             "ur:bytes/1-9/lpadascfadaxcywenbpljkhdcahkadaemejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtdkgslpgh",
             "ur:bytes/2-9/lpaoascfadaxcywenbpljkhdcagwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsgmghhkhstlrdcxaefz",
@@ -49,6 +41,15 @@ class URTest {
             "ur:bytes/19-9/lpbwascfadaxcywenbpljkhdcadekicpaajootjzpsdrbalpeywllbdsnbinaerkurspbncxgslgftvtsrjtksplcpeo",
             "ur:bytes/20-9/lpbbascfadaxcywenbpljkhdcayapmrleeleaxpasfrtrdkncffwjyjzgyetdmlewtkpktgllepfrltataztksmhkbot"
         )
+        val ur: UR = makeMessageUR(256, "Wolf")
+
+        val encoder = UREncoder(
+            ur = ur,
+            maximumFragmentLength = 30,
+            minimumFragmentLength = 10,
+            firstSequenceNumber = 0
+        )
+        val parts: List<String> = List(20) { encoder.nextPart() }
 
         assertEquals(
             expected = expectedParts,
@@ -59,13 +60,14 @@ class URTest {
     @Test
     fun `Encoding and decoding URs`() {
         val expectedUR: UR = makeMessageUR(32767, "Wolf")
+
         val encoder: UREncoder = UREncoder(
             ur = expectedUR,
             maximumFragmentLength = 1000,
             minimumFragmentLength = 10,
             firstSequenceNumber = 100
         )
-        val decoder: URDecoder = URDecoder()
+        val decoder = URDecoder()
 
         while (decoder.result == null) {
             val part: String = encoder.nextPart()

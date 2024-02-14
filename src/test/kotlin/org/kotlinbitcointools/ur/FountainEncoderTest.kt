@@ -7,12 +7,9 @@ import kotlin.test.assertEquals
 class FountainEncoderTest {
     @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun `Partition a long message`() {
+    fun `Fountain encoder can partition a long message`() {
         val message = makeMessage(1024, "Wolf")
-        val fragmentLength = FountainEncoder.findNominalFragmentLength(message.size, 10, 100)
-        val segments = FountainEncoder.partitionMessage(message, fragmentLength)
-        val joined: List<String> = segments.map { it.toHexString() }
-        val expectedStrings: List<String> = listOf(
+        val expectedSegments: List<String> = listOf(
             "916ec65cf77cadf55cd7f9cda1a1030026ddd42e905b77adc36e4f2d3ccba44f7f04f2de44f42d84c374a0e149136f25b01852545961d55f7f7a8cde6d0e2ec43f3b2dcb644a2209e8c9e34af5c4747984a5e873c9cf5f965e25ee29039f",
             "df8ca74f1c769fc07eb7ebaec46e0695aea6cbd60b3ec4bbff1b9ffe8a9e7240129377b9d3711ed38d412fbb4442256f1e6f595e0fc57fed451fb0a0101fb76b1fb1e1b88cfdfdaa946294a47de8fff173f021c0e6f65b05c0a494e50791",
             "270a0050a73ae69b6725505a2ec8a5791457c9876dd34aadd192a53aa0dc66b556c0c215c7ceb8248b717c22951e65305b56a3706e3e86eb01c803bbf915d80edcd64d4d41977fa6f78dc07eecd072aae5bc8a852397e06034dba6a0b570",
@@ -26,9 +23,13 @@ class FountainEncoderTest {
             "170010067e2e75ebe2d2904aeb1f89d5dc98cd4a6f2faaa8be6d03354c990fd895a97feb54668473e9d942bb99e196d897e8f1b01625cf48a7b78d249bb4985c065aa8cd1402ed2ba1b6f908f63dcd84b66425df00000000000000000000"
         )
 
+        val fragmentLength: Int = FountainEncoder.findNominalFragmentLength(message.size, 10, 100)
+        val segmentsByteArrays: List<ByteArray> = FountainEncoder.partitionMessage(message, fragmentLength)
+        val segments: List<String> = segmentsByteArrays.map { it.toHexString() }
+
         assertEquals(
-            expected = expectedStrings,
-            actual = joined
+            expected = expectedSegments,
+            actual = segments
         )
     }
 }
